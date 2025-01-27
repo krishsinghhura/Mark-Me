@@ -1,4 +1,3 @@
-const express = require("express");
 const supabase = require("../config/supabaseClient");
 
 const signup = async (req, res) => {

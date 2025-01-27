@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "employeepanel",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,10 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.48.0",
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7",
-    "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.3"

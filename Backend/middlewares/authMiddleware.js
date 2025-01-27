@@ -15,7 +15,7 @@ const authenticateJWT = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: "Invalid token" });
     }
-    req.user = decoded; // Add user details to request object
+    req.user = { email: decoded.email }; // Use 'sub' as the user ID
     next();
   });
 };
