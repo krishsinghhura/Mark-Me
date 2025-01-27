@@ -1,4 +1,5 @@
 const supabase = require("../config/supabaseClient");
+const jwt = require("jsonwebtoken");
 
 const setGeofence = async (req, res) => {
   const { latitude, longitude, radius, officeName } = req.body;
@@ -31,24 +32,24 @@ const setGeofence = async (req, res) => {
   }
 };
 
-const getGeofences = async (req, res) => {
+const getOffices = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("geo_fence") // Table name
-      .select("office_name"); // Select the column you need
+      .select("office_name"); // Column to select
 
     if (error) {
-      throw error;
+      return res.status(400).json({ error: error.message });
     }
 
-    res.status(200).json(data); // Send the data back as JSON
-  } catch (error) {
-    console.error("Error fetching office names:", error);
-    res.status(500).json({ message: "Error fetching office names", error });
+    res.status(200).json(data); // Return the data
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 module.exports = {
   setGeofence,
-  getGeofences,
+  getOffices,
 };

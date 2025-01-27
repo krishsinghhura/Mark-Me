@@ -1,4 +1,5 @@
 const supabase = require("../config/supabaseClient");
+const jwt = require("jsonwebtoken");
 
 const signup = async (req, res) => {
   const { email, password } = req.body;
@@ -85,8 +86,53 @@ const updateOfficeName = async (req, res) => {
   }
 };
 
+const getGeoFenceDetails = async (req, res) => {
+  try {
+    const email = req.user.email; // Use email from the decoded JWT
+
+    // Step 2: Get the office_name of the employee from the employee table using email
+    const { data: employeeData, error: employeeError } = await supabase
+      .from("employee")
+      .select("office_name")
+      .eq("email", email)
+      .single(); // assuming only one employee with this email
+
+    if (employeeError || !employeeData) {
+      return res.status(404).json({
+        message: "Employee not found or error fetching employee data",
+      });
+    }
+
+    const officeName = employeeData.office_name;
+
+    // Step 3: Get the latitude, longitude, and radius from the geo_fence table using office_name
+    const { data: geoFenceData, error: geoFenceError } = await supabase
+      .from("geo_fence")
+      .select("latitude, longitude, radius")
+      .eq("office_name", officeName)
+      .single(); // assuming only one geo_fence per office_name
+
+    if (geoFenceError || !geoFenceData) {
+      return res
+        .status(404)
+        .json({ message: "Geo-fence not found for the office" });
+    }
+
+    // Step 4: Return the latitude, longitude, and radius
+    return res.status(200).json({
+      latitude: geoFenceData.latitude,
+      longitude: geoFenceData.longitude,
+      radius: geoFenceData.radius,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   signup,
   signin,
   updateOfficeName,
+  getGeoFenceDetails,
 };

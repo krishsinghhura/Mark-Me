@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import NavBar from "../components/NavBar";
 import axios from "axios";
+import Cookies from "js-cookie"; // Import the js-cookie library
 
 const SetFence = () => {
   const [latitude, setLatitude] = useState(null);
@@ -49,10 +50,23 @@ const SetFence = () => {
       officeName,
     };
 
+    // Get the JWT token from cookies
+    const token = Cookies.get("token"); // Replace with the actual cookie name
+
+    if (!token) {
+      setMessage("No token found. Please login.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:4000/employer/set-geofence",
-        geofenceData
+        geofenceData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       setMessage("Geofence set successfully!");
       console.log(response.data);

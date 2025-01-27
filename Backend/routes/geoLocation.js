@@ -4,11 +4,11 @@ const express = require("express");
 const router = express.Router();
 const {
   setGeofence,
-  getGeofences,
+  getOffices,
 } = require("../controller/geoLocationController");
 
-router.post("/set-geofence", setGeofence);
+router.post("/set-geofence", authenticateJWT, setGeofence);
 
-router.get("/geo_fence", getGeofences);
+router.get("/offices", authenticateJWT, getOffices);
 
 module.exports = router;

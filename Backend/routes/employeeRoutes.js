@@ -5,6 +5,7 @@ const {
   updateOfficeName,
 } = require("../controller/employeeController");
 const authenticateJWT = require("../middlewares/authMiddleware");
+const { getGeoFenceDetails } = require("../controller/employeeController");
 const router = express.Router();
 
 // User Signup
@@ -15,11 +16,6 @@ router.post("/login", signin);
 
 router.put("/update-office", authenticateJWT, updateOfficeName);
 
-// Protected Route
-router.get("/secure", authenticateJWT, (req, res) => {
-  res
-    .status(200)
-    .json({ message: "Access granted to secure route", user: req.user });
-});
+router.get("/geo-fence", authenticateJWT, getGeoFenceDetails);
 
 module.exports = router;
