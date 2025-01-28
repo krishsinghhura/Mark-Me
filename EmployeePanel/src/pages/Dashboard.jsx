@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [officeLocation, setOfficeLocation] = useState(null); // State for selected office location
   const [distance, setDistance] = useState(null); // Distance from geofence
   const [status, setStatus] = useState(""); // Status: Inside/Outside geofence
+  const [location, setLocation] = useState({ latitude: null, longitude: null });
 
   useEffect(() => {
     const authToken = Cookies.get("token"); // Get the token from cookies
@@ -18,7 +19,7 @@ const Dashboard = () => {
     if (!authToken) {
       navigate("/"); // Redirect to the login page if token is missing
     } else {
-      // Fetch office names and their geofence locations
+      // Fetch office names
       axios
         .get("http://localhost:4000/employer/offices", {
           headers: {
@@ -26,7 +27,7 @@ const Dashboard = () => {
           },
         })
         .then((response) => {
-          setOfficeNames(response.data); // Set the office names and locations
+          setOfficeNames(response.data); // Set the office names
         })
         .catch((error) => {
           console.error("Error fetching office names:", error);
@@ -36,30 +37,44 @@ const Dashboard = () => {
 
   const handleOfficeSelection = async () => {
     if (selectedOffice) {
+      console.log("Selected Office: ", selectedOffice); // Log selected office
+
       try {
         const authToken = Cookies.get("token");
 
-        await axios.put(
-          "http://localhost:4000/employee/update-office", // Backend endpoint for updating office_name
-          { office_name: selectedOffice },
+        // Fetch office geofence data
+        const response = await axios.get(
+          `http://localhost:4000/employee/geo-fence`, // Fetch geofence data for the selected office
           {
-            headers: { Authorization: `Bearer ${authToken}` },
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
           }
         );
 
-        const selectedOfficeData = officeNames.find(
-          (office) => office.office_name === selectedOffice
-        );
+        const selectedOfficeData = response.data; // Get the geofence data from the response
 
-        setOfficeLocation({
-          latitude: selectedOfficeData.latitude,
-          longitude: selectedOfficeData.longitude,
-          radius: selectedOfficeData.radius, // Geofence radius in meters
-        });
+        if (selectedOfficeData) {
+          console.log(
+            "Selected Office Latitude: ",
+            selectedOfficeData.latitude
+          );
+          console.log(
+            "Selected Office Longitude: ",
+            selectedOfficeData.longitude
+          );
+          console.log("Selected Office Radius: ", selectedOfficeData.radius);
 
-        alert("Office name updated successfully!");
+          setOfficeLocation({
+            latitude: selectedOfficeData.latitude,
+            longitude: selectedOfficeData.longitude,
+            radius: selectedOfficeData.radius, // Geofence radius in meters
+          });
+        } else {
+          console.error("Geofence data not found for selected office.");
+        }
       } catch (error) {
-        console.error("Error updating office name:", error);
+        console.error("Error fetching geofence data:", error);
         alert("Failed to update office name. Please try again.");
       }
     } else {
@@ -72,6 +87,13 @@ const Dashboard = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          console.log(
+            "Current Location: Latitude -",
+            latitude,
+            "Longitude -",
+            longitude
+          ); // Log current location
+
           if (officeLocation) {
             calculateDistance(latitude, longitude);
           } else {
