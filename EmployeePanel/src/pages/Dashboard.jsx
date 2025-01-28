@@ -6,8 +6,6 @@ import Cookies from "js-cookie"; // Import js-cookie
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [officeNames, setOfficeNames] = useState([]); // State to store the list of office names
-  const [selectedOffice, setSelectedOffice] = useState(""); // State for selected office name
   const [officeLocation, setOfficeLocation] = useState(null); // State for selected office location
   const [distance, setDistance] = useState(null); // Distance from geofence
   const [status, setStatus] = useState(""); // Status: Inside/Outside geofence
@@ -19,68 +17,41 @@ const Dashboard = () => {
     if (!authToken) {
       navigate("/"); // Redirect to the login page if token is missing
     } else {
-      // Fetch office names
+      // Fetch office geofence data
       axios
-        .get("http://localhost:4000/employer/offices", {
+        .get("http://localhost:4000/employee/geo-fence", {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
         })
         .then((response) => {
-          setOfficeNames(response.data); // Set the office names
+          const selectedOfficeData = response.data; // Get the geofence data from the response
+
+          if (selectedOfficeData) {
+            console.log(
+              "Selected Office Latitude: ",
+              selectedOfficeData.latitude
+            );
+            console.log(
+              "Selected Office Longitude: ",
+              selectedOfficeData.longitude
+            );
+            console.log("Selected Office Radius: ", selectedOfficeData.radius);
+
+            setOfficeLocation({
+              latitude: selectedOfficeData.latitude,
+              longitude: selectedOfficeData.longitude,
+              radius: selectedOfficeData.radius, // Geofence radius in meters
+            });
+          } else {
+            console.error("Geofence data not found.");
+          }
         })
         .catch((error) => {
-          console.error("Error fetching office names:", error);
+          console.error("Error fetching geofence data:", error);
         });
     }
   }, [navigate]);
-
-  const handleOfficeSelection = async () => {
-    if (selectedOffice) {
-      console.log("Selected Office: ", selectedOffice); // Log selected office
-
-      try {
-        const authToken = Cookies.get("token");
-
-        // Fetch office geofence data
-        const response = await axios.get(
-          `http://localhost:4000/employee/geo-fence`, // Fetch geofence data for the selected office
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
-
-        const selectedOfficeData = response.data; // Get the geofence data from the response
-
-        if (selectedOfficeData) {
-          console.log(
-            "Selected Office Latitude: ",
-            selectedOfficeData.latitude
-          );
-          console.log(
-            "Selected Office Longitude: ",
-            selectedOfficeData.longitude
-          );
-          console.log("Selected Office Radius: ", selectedOfficeData.radius);
-
-          setOfficeLocation({
-            latitude: selectedOfficeData.latitude,
-            longitude: selectedOfficeData.longitude,
-            radius: selectedOfficeData.radius, // Geofence radius in meters
-          });
-        } else {
-          console.error("Geofence data not found for selected office.");
-        }
-      } catch (error) {
-        console.error("Error fetching geofence data:", error);
-        alert("Failed to update office name. Please try again.");
-      }
-    } else {
-      alert("Please select an office.");
-    }
-  };
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -139,30 +110,38 @@ const Dashboard = () => {
     }
   };
 
+  const navi = () => {
+    navigate("/face-detect");
+  };
+
+  const navi2 = () => {
+    navigate("/face-recognize");
+  };
+
   return (
     <>
       <NavBar />
       <div className="m-5">
-        <h1 className="text-lg font-bold mb-3">Select Your Office</h1>
-        <select
-          value={selectedOffice}
-          onChange={(e) => setSelectedOffice(e.target.value)}
-          className="w-full py-2 px-4 mb-4 border rounded-lg"
-        >
-          <option value="" disabled>
-            -- Select Office --
-          </option>
-          {officeNames.map((office, index) => (
-            <option key={index} value={office.office_name}>
-              {office.office_name}
-            </option>
-          ))}
-        </select>
+        <h1 className="text-lg font-bold mb-3">Office Geofence</h1>
         <button
-          onClick={handleOfficeSelection}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition cursor-pointer mb-5"
+          onClick={getLocation}
+          className="w-50 m-5 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition cursor-pointer"
         >
-          Save Office Name
+          Get Location
+        </button>
+
+        <button
+          onClick={navi}
+          className="w-50 m-5 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition cursor-pointer"
+        >
+          Add face Authentication
+        </button>
+
+        <button
+          onClick={navi2}
+          className="w-50 m-5 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition cursor-pointer"
+        >
+          Authenticate your face
         </button>
       </div>
 
@@ -177,13 +156,6 @@ const Dashboard = () => {
           {status}
         </div>
       )}
-
-      <button
-        onClick={getLocation}
-        className="w-50 m-5 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition cursor-pointer"
-      >
-        Get Location
-      </button>
 
       {distance !== null && (
         <p className="m-5 text-lg">
