@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
+    "esbuild": "^0.25.1",
     "face-api.js": "^0.22.2",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
